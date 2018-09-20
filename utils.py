@@ -19,5 +19,6 @@ def login(username, password):
     form_data['username'] = username
     form_data['password'] = password
     response = session.post(url + '/' + form_element['action'], data=form_data)
-    print(response.history)
-    return session
+    if response.status_code == 200:
+        return session
+    raise Exception('Login failed')
