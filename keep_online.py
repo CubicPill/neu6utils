@@ -7,6 +7,9 @@ from bs4 import BeautifulSoup
 from utils import login
 
 
+class NotLoggedIn(Exception): pass
+
+
 class Worker:
 
     def __init__(self, username, password):
@@ -21,7 +24,9 @@ class Worker:
         # get rid of the non-resource forums
 
     def random_access_post(self, form_url):
-        response = self._session.get(form_url)
+        response = self._session.get(form_url, allow_redirects=False)
+        if response.status_code != 200:
+            raise NotLoggedIn
         soup = BeautifulSoup(response.content, 'html5lib')
         post_urls = ['http://bt.neu6.edu.cn/' + td.find('a', {'class': 'xst'})['href'] for td in
                      soup.find_all('th', {'class': ['new', 'common']})]
@@ -42,7 +47,11 @@ if __name__ == '__main__':
         sys.exit(1)
     worker = Worker(sys.argv[1], sys.argv[2])
     while True:
-        title = worker.keep_online()
+        try:
+            title = worker.keep_online()
+        except NotLoggedIn:
+            worker = Worker(sys.argv[1], sys.argv[2])
+            continue
         if title:
             print(time.ctime() + ' Accessed: ' + title)
             sleep_interval = random.gauss(50, 15)
