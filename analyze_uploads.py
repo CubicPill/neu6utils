@@ -1,8 +1,10 @@
+import os
 import sys
 
+import requests
 from bs4 import BeautifulSoup
 
-from utils import login
+from utils import login, load_cookies, dump_cookies, test_session
 
 
 def parse_page(content):
@@ -25,8 +27,19 @@ if __name__ == '__main__':
         print('Usage: python3 ' + sys.argv[0] + ' <username> <password>')
         sys.exit(1)
     username, password = sys.argv[1:]
+    while True:
+        if os.path.isfile('cookies.json'):
+            cookies = load_cookies('cookies.json')
+            session = requests.session()
+            for _k, _v in cookies.items():
+                session.cookies.set(_k, _v)
+            if test_session(session):
+                print('Logged in using cookies')
+                break
 
-    session = login(username, password)
+        session = login(username, password)
+        dump_cookies(session.cookies.get_dict(), 'cookies.json')
+        break
 
     page = 1
     results = list()

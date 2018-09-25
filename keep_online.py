@@ -1,10 +1,12 @@
+import os
 import random
 import sys
 import time
 
+import requests
 from bs4 import BeautifulSoup
 
-from utils import login
+from utils import login, load_cookies, dump_cookies, test_session
 
 
 class NotLoggedIn(Exception): pass
@@ -13,7 +15,16 @@ class NotLoggedIn(Exception): pass
 class Worker:
 
     def __init__(self, username, password):
+        if os.path.isfile('cookies.json'):
+            cookies = load_cookies('cookies.json')
+            self._session = requests.session()
+            for _k, _v in cookies.items():
+                self._session.cookies.set(_k, _v)
+            if test_session(self._session):
+                print('Logged in using cookies')
+                return
         self._session = login(username, password)
+        dump_cookies(self._session.cookies.get_dict(), 'cookies.json')
 
     def find_all_forums(self):
         url = 'http://bt.neu6.edu.cn/forum.php'

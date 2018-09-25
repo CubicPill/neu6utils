@@ -1,3 +1,5 @@
+import json
+
 import requests
 from bs4 import BeautifulSoup
 
@@ -22,3 +24,20 @@ def login(username, password):
     if response.status_code == 200:
         return session
     raise Exception('Login failed')
+
+
+def test_session(session: requests.session()):
+    response = session.get('http://bt.neu6.edu.cn/home.php?mod=spacecp', allow_redirects=False)
+    if response.status_code != 200:
+        return False
+    return True
+
+
+def dump_cookies(cookies, path):
+    with open(path, 'w') as f:
+        json.dump(cookies, f)
+
+
+def load_cookies(path) -> dict:
+    with open(path) as f:
+        return json.load(f)
