@@ -6,7 +6,9 @@ import sys
 import requests
 from bs4 import BeautifulSoup
 
-from utils import login, load_cookies, dump_cookies, test_session
+from utils import login, load_cookies, dump_cookies, test_session, NotLoggedIn
+
+URL = 'http://bt.neu6.edu.cn/home.php?mod=spacecp&ac=plugin&op=credit&id=torrent:traffics&page={page}'
 
 
 def parse_page(content):
@@ -23,25 +25,29 @@ def parse_page(content):
     return result
 
 
-URL = 'http://bt.neu6.edu.cn/home.php?mod=spacecp&ac=plugin&op=credit&id=torrent:traffics&page={page}'
 if __name__ == '__main__':
-    if len(sys.argv) != 3:
-        print('Usage: python3 ' + sys.argv[0] + ' <username> <password>')
-        sys.exit(1)
-    username, password = sys.argv[1:]
-    while True:
+    try:
         if os.path.isfile('cookies.json'):
+            print('Cookies found.')
             cookies = load_cookies('cookies.json')
             session = requests.session()
             for _k, _v in cookies.items():
                 session.cookies.set(_k, _v)
             if test_session(session):
                 print('Logged in using cookies')
-                break
-
+            else:
+                print('Invalid cookies!')
+                raise NotLoggedIn
+        else:
+            raise NotLoggedIn
+    except NotLoggedIn:
+        if len(sys.argv) != 3:
+            print('You need to provide your credentials.')
+            print('Usage: python3 ' + sys.argv[0] + ' <username> <password>')
+            sys.exit(1)
+        username, password = sys.argv[1:]
         session = login(username, password)
         dump_cookies(session.cookies.get_dict(), 'cookies.json')
-        break
 
     page = 1
     results = list()

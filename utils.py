@@ -3,6 +3,7 @@ import json
 import requests
 from bs4 import BeautifulSoup
 
+class NotLoggedIn(Exception): pass
 
 def login(username, password):
     url = 'http://bt.neu6.edu.cn'

@@ -8,10 +8,9 @@ import time
 import requests
 from bs4 import BeautifulSoup
 
-from utils import login, load_cookies, dump_cookies, test_session
+from utils import login, load_cookies, dump_cookies, test_session,NotLoggedIn
 
 
-class NotLoggedIn(Exception): pass
 
 
 class Worker:
