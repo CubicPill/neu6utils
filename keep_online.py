@@ -1,24 +1,12 @@
 #!/usr/bin/env python3
 
-import os
 import random
 import sys
 import time
 
-import requests
 from bs4 import BeautifulSoup
 
-from utils import dump_cookies, NotLoggedIn, load_cookies, test_session, login
-
-
-def request_patch(slf, *args, **kwargs):
-    print("Fix called")
-    timeout = kwargs.pop('timeout', 10)
-    return slf.request_orig(*args, **kwargs, timeout=timeout)
-
-
-setattr(requests.sessions.Session, 'request_orig', requests.sessions.Session.request)
-requests.sessions.Session.request = request_patch
+from utils import dump_cookies, NotLoggedIn, try_login
 
 
 class Worker:
@@ -54,30 +42,7 @@ class Worker:
 
 
 if __name__ == '__main__':
-    try:
-        if os.path.isfile('cookies.json'):
-            print('Cookies found.')
-            cookies = load_cookies('cookies.json')
-            session = requests.session()
-            for _k, _v in cookies.items():
-                session.cookies.set(_k, _v)
-            if test_session(session):
-                print('Logged in using cookies')
-            else:
-                print('Invalid cookies!')
-                os.remove('cookies.json')
-                raise NotLoggedIn
-        else:
-            raise NotLoggedIn
-    except NotLoggedIn:
-        if len(sys.argv) != 3:
-            print('You need to provide your credentials.')
-            print('Usage: python3 ' + sys.argv[0] + ' <username> <password>')
-            sys.exit(1)
-        username, password = sys.argv[1:]
-        session = login(username, password)
-        dump_cookies(session.cookies.get_dict(), 'cookies.json')
-
+    session = try_login()
     worker = Worker(session)
     while True:
         try:
