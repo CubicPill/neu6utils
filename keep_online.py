@@ -11,6 +11,16 @@ from bs4 import BeautifulSoup
 from utils import dump_cookies, NotLoggedIn, load_cookies, test_session, login
 
 
+def request_patch(slf, *args, **kwargs):
+    print("Fix called")
+    timeout = kwargs.pop('timeout', 10)
+    return slf.request_orig(*args, **kwargs, timeout=timeout)
+
+
+setattr(requests.sessions.Session, 'request_orig', requests.sessions.Session.request)
+requests.sessions.Session.request = request_patch
+
+
 class Worker:
 
     def __init__(self, session):
