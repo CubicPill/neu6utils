@@ -8,23 +8,13 @@ import time
 import requests
 from bs4 import BeautifulSoup
 
-from utils import login, load_cookies, dump_cookies, test_session,NotLoggedIn
-
-
+from utils import dump_cookies, NotLoggedIn, load_cookies, test_session, login
 
 
 class Worker:
 
-    def __init__(self, username, password):
-        if os.path.isfile('cookies.json'):
-            cookies = load_cookies('cookies.json')
-            self._session = requests.session()
-            for _k, _v in cookies.items():
-                self._session.cookies.set(_k, _v)
-            if test_session(self._session):
-                print('Logged in using cookies')
-                return
-        self._session = login(username, password)
+    def __init__(self, session):
+        self._session = session
         dump_cookies(self._session.cookies.get_dict(), 'cookies.json')
 
     def find_all_forums(self):
@@ -42,7 +32,7 @@ class Worker:
         soup = BeautifulSoup(response.content, 'html5lib')
         post_urls = ['http://bt.neu6.edu.cn/' + td.find('a', {'class': 'xst'})['href'] for td in
                      soup.find_all('th', {'class': ['new', 'common']})]
-        if not post_urls:
+        if not post_urls or len(post_urls) == 0:
             return None
         response = self._session.get(random.choice(post_urls))
         soup = BeautifulSoup(response.content, 'html5lib')
@@ -54,16 +44,36 @@ class Worker:
 
 
 if __name__ == '__main__':
-    if len(sys.argv) != 3:
-        print('Usage: python3 ' + sys.argv[0] + ' <username> <password>')
-        sys.exit(1)
-    worker = Worker(sys.argv[1], sys.argv[2])
+    try:
+        if os.path.isfile('cookies.json'):
+            print('Cookies found.')
+            cookies = load_cookies('cookies.json')
+            session = requests.session()
+            for _k, _v in cookies.items():
+                session.cookies.set(_k, _v)
+            if test_session(session):
+                print('Logged in using cookies')
+            else:
+                print('Invalid cookies!')
+                raise NotLoggedIn
+        else:
+            raise NotLoggedIn
+    except NotLoggedIn:
+        if len(sys.argv) != 3:
+            print('You need to provide your credentials.')
+            print('Usage: python3 ' + sys.argv[0] + ' <username> <password>')
+            sys.exit(1)
+        username, password = sys.argv[1:]
+        session = login(username, password)
+        dump_cookies(session.cookies.get_dict(), 'cookies.json')
+
+    worker = Worker(session)
     while True:
         try:
             title = worker.keep_online()
         except NotLoggedIn:
-            worker = Worker(sys.argv[1], sys.argv[2])
-            continue
+            print('**********Credentials expired, restart!**********')
+            sys.exit(1)
         if title:
             print(time.ctime() + ' Accessed: ' + title)
             sleep_interval = random.gauss(50, 15)
