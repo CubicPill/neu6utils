@@ -37,6 +37,7 @@ if __name__ == '__main__':
                 print('Logged in using cookies')
             else:
                 print('Invalid cookies!')
+                os.remove('cookies.json')
                 raise NotLoggedIn
         else:
             raise NotLoggedIn

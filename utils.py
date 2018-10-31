@@ -3,13 +3,19 @@ import json
 import requests
 from bs4 import BeautifulSoup
 
+
 class NotLoggedIn(Exception): pass
+
+
+class LoginException(Exception): pass
+
 
 def login(username, password):
     url = 'http://bt.neu6.edu.cn'
     session = requests.session()
     response = session.get(url)
-
+    if response.status_code != 200:
+        raise LoginException('Server returned code {}'.format(response.status_code))
     soup = BeautifulSoup(response.content, 'html5lib')
     form_data = dict()
     form_element = soup.find('form', {'name': 'login'})
