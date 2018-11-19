@@ -7,7 +7,6 @@ from bs4 import BeautifulSoup
 
 
 def request_patch(slf, *args, **kwargs):
-    print("Fix called")
     timeout = kwargs.pop('timeout', 10)
     return slf.request_orig(*args, **kwargs, timeout=timeout)
 
