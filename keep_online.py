@@ -59,3 +59,4 @@ if __name__ == '__main__':
             time.sleep(sleep_interval)
         else:
             print(time.ctime() + ' No posts under this forum, retry')
+        sys.stdout.flush()
