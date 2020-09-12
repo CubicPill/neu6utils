@@ -5,6 +5,7 @@ import sys
 import time
 
 from bs4 import BeautifulSoup
+from requests.exceptions import ConnectionError
 
 from utils import dump_cookies, NotLoggedIn, try_login
 
@@ -42,7 +43,13 @@ class Worker:
 
 
 if __name__ == '__main__':
-    session = try_login()
+    while True:
+        try:
+            session = try_login()
+            break
+        except ConnectionError:
+            print('neu6 might be down, retry later')
+            time.sleep(300)
     worker = Worker(session)
     while True:
         try:
