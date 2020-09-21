@@ -7,7 +7,7 @@ import time
 from bs4 import BeautifulSoup
 from requests.exceptions import ConnectionError
 
-from utils import dump_cookies, NotLoggedIn, try_login
+from utils import dump_cookies, NotLoggedIn, try_login, LoginException
 
 
 class Worker:
@@ -49,6 +49,9 @@ if __name__ == '__main__':
             break
         except ConnectionError:
             print('neu6 might be down, retry later')
+            time.sleep(300)
+        except LoginException as e:
+            print(e)
             time.sleep(300)
     worker = Worker(session)
     while True:
